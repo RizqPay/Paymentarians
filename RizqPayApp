@@ -1,0 +1,135 @@
+let providerFactory = AppCheckDebugProviderFactory()
+AppCheck.setAppCheckProviderFactory(providerFactory)
+
+FirebaseApp.configure(
+  
+Firebase
+
+
+Documentation
+App Check
+
+Firebase
+Save the date for Demo Day to see what's new and what's possible with Firebase! Learn more
+Firebase
+Documentation
+App Check
+Build
+Was this helpful?
+
+Send feedback
+Enable App Check enforcement for Cloud Functions
+
+bookmark_border
+When you understand how App Check will affect your users and you're ready to proceed, you can enable App Check enforcement.
+
+Enabling enforcement
+To begin enforcing App Check token requirements in your callable Cloud Functions, modify your functions to check for valid App Check tokens, as shown below. Once you enable enforcement, all unverified requests will be rejected.
+
+Install the Cloud Functions SDK.
+
+Node.js (1st gen)
+More
+Update your project's firebase-functions dependency to version 4.0.0 or newer:
+
+
+npm install firebase-functions@">=4.0.0"
+Enable the App Check enforcement runtime option for your function:
+
+Node.js (1st gen)
+More
+
+const functions = require("firebase-functions/v1");
+
+exports.yourV1CallableFunction = functions
+  .runWith({
+      enforceAppCheck: true, // Reject requests with missing or invalid App Check tokens.
+  })
+  .https.onCall((data, context) => {
+        // context.app contains data from App Check, including the app ID.
+        // Your function logic follows.
+        ...
+  });
+Redeploy your functions:
+
+
+firebase deploy --only functions
+Once these changes are deployed, your callable Cloud Functions will require valid App Check tokens. The Cloud Functions client SDKs automatically attach an App Check token when you invoke a callable function.
+
+Replay protection (beta)
+To protect a callable function from replay attacks, you can consume the App Check token after verifying it. Once the token is consumed, it cannot be used again.
+
+Note: The replay protection beta supports only the Cloud Functions SDK for Node.js.
+Note that using replay protection adds a network round trip to token verification, and therefore adds latency to the cloud function call. For this reason, most apps typically enable replay protection only on particularly sensitive endpoints.
+
+To consume tokens:
+
+In the Cloud console, grant the "Firebase App Check Token Verifier" role to the service account used by the Cloud Function.
+
+If you're explicitly initializing the Admin SDK and you specified your project's Admin SDK service account credentials, the required role is already granted.
+If you're using 1st generation Cloud Functions with the default Admin SDK configuration, grant the role to the App Engine default service account. See Changing service account permissions.
+If you're using 2nd generation Cloud Functions with the default Admin SDK configuration, grant the role to the Default compute service account.
+Set consumeAppCheckToken to true in your function definition:
+
+Node.js (1st gen)
+Node.js (2nd gen)
+const functions = require("firebase-functions/v1");
+
+exports.yourV1CallableFunction = functions
+  .runWith({
+      enforceAppCheck: true, // Reject requests with missing or invalid App Check tokens.
+      consumeAppCheckToken: true  // Consume the token after verification.
+  })
+  .https.onCall((data, context) => {
+      // context.app contains data from App Check, including the app ID.
+      // Your function logic follows.
+      ...
+  });
+Update your app client code to acquire consumable limited-use tokens when you call the function:
+
+Swift
+Kotlin+KTX
+More
+let options = HTTPSCallableOptions(requireLimitedUseAppCheckTokens: true)
+let yourCallableFunction =
+    Functions.functions().httpsCallable("yourCallableFunction", options: options)
+do {
+    let result = try await yourCallableFunction.call()
+} catch {
+    // ...
+}
+Was this helpful?
+
+Send feedback
+Except as otherwise noted, the content of this page is licensed under the Creative Commons Attribution 4.0 License, and code samples are licensed under the Apache 2.0 License. For details, see the Google Developers Site Policies. Java is a registered trademark of Oracle and/or its affiliates.
+
+Last updated 2023-10-31 UTC.
+
+Learn
+Guides
+Reference
+Samples
+Libraries
+GitHub
+Stay connected
+Blog
+Firebase Summit
+Twitter
+YouTube
+Support
+Contact support
+Stack Overflow
+Slack community
+Google group
+Release notes
+FAQs
+Google Developers
+Android
+Chrome
+Firebase
+Google Cloud Platform
+All products
+Terms
+Privacy
+
+English
